@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: notes-api
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notes_db
+    username: postgres
+    password: Postgresfratd112
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
