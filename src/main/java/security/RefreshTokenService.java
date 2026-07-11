@@ -1,9 +1,9 @@
 package security;
 
 import entity.RefreshToken;
+import lombok.AllArgsConstructor;
 import repository.RefreshTokenRepository;
 import repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,19 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@AllArgsConstructor
 public class RefreshTokenService {
-
-    // Читаем те самые 60 дней из нашего JwtUtil конфигурационного пула
-    @Value("${JWT_REFRESH_EXPIRATION:5184000000}")
-    private long refreshTokenExpirationMs;
-
+    private final JwtProperties jwtProperties;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
-
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.userRepository = userRepository;
-    }
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
@@ -40,7 +32,7 @@ public class RefreshTokenService {
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username)));
 
         // Высчитываем дату протухания (текущий момент + 60 дней)
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationMs));
+        refreshToken.setExpiryDate(Instant.now().plusMillis(jwtProperties.getRefreshExpiration()));
 
         // Генерируем уникальную UUID строку
         refreshToken.setToken(UUID.randomUUID().toString());

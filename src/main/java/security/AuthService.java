@@ -6,6 +6,7 @@ import dto.RegisterRequest;
 import entity.Role;
 import entity.User;
 import entity.RefreshToken;
+import lombok.AllArgsConstructor;
 import repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,25 +17,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 public class AuthService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
-
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil,
-                       RefreshTokenService refreshTokenService,
-                       AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-        this.refreshTokenService = refreshTokenService;
-        this.authenticationManager = authenticationManager;
-    }
 
     // 1. РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ
     @Transactional

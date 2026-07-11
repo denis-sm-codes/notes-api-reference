@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -16,20 +16,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
+@AllArgsConstructor
 public class JwtUtil {
-
-    // Секретный ключ берем из переменных, длина должна быть не менее 256 бит (32 символа)
-    @Value("${JWT_SECRET:default_super_secret_key_for_dev_environment_32_chars_minimum}")
-    private String jwtSecret;
-
-    @Value("${JWT_ACCESS_EXPIRATION:900000}") // 15 минут по умолчанию
-    private long accessTokenExpirationMs;
-
-    @Value("${JWT_REFRESH_EXPIRATION:5184000000}") // 60 дней по умолчанию
-    private long refreshTokenExpirationMs;
+    private final JwtProperties jwtProperties;
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -71,7 +63,7 @@ public class JwtUtil {
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + accessTokenExpirationMs))
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessExpiration()))
                 .signWith(getSigningKey())
                 .compact();
     }
