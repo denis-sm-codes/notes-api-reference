@@ -13,35 +13,36 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-public class RefreshTokenService {
+public class RefreshTokenService { //READY
+    // СОЗДАНИЕ REFRESH TOKEN
+    // Вернуть RefreshToken, если он существует
+    // Удалить RefreshToken, если его срок истёк
+    // Удалить RefreshToken у Пользователя
     private final JwtProperties jwtProperties;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
 
+    //Возвращает RefreshToken, если он существует
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
 
-    // Создание нового рефреш токена для пользователя
+    //СОЗДАНИЕ REFRESH TOKEN
     @Transactional
     public RefreshToken createRefreshToken(String username) {
         RefreshToken refreshToken = new RefreshToken();
 
-        // Ищем пользователя, к которому привяжем токен
         refreshToken.setUser(userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username)));
 
-        // Высчитываем дату протухания (текущий момент + 60 дней)
         refreshToken.setExpiryDate(Instant.now().plusMillis(jwtProperties.getRefreshExpiration()));
 
-        // Генерируем уникальную UUID строку
         refreshToken.setToken(UUID.randomUUID().toString());
 
-        // Сохраняем в базу данных PostgreSQL
         return refreshTokenRepository.save(refreshToken);
     }
 
-    // Проверка: если токен протух — удаляем его из базы данных
+    //Удалить RefreshToken, если его срок истёк
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.isExpired()) {
             refreshTokenRepository.delete(token);
@@ -50,7 +51,7 @@ public class RefreshTokenService {
         return token;
     }
 
-    // Удаление сессий пользователя (например, при логауте)
+    //Удалить RefreshToken у Пользователя
     @Transactional
     public void deleteByUserId(String username) {
         userRepository.findByUsername(username).ifPresent(refreshTokenRepository::deleteByUser);

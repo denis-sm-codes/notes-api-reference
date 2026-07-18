@@ -90,7 +90,7 @@ public class AuthService {
                 .build();
     }
 
-    // 3. ОБНОВЛЕНИЕ ACCESS-ТОКЕНА ЧЕРЕЗ REFRESH
+    // 3. ОБНОВЛЕНИЕ ACCESS-ТОКЕНА ЧЕРЕЗ REFRESH (С РОТАЦИЕЙ!)
     @Transactional
     public AuthResponse refreshToken(String requestRefreshToken) {
         return refreshTokenService.findByToken(requestRefreshToken)
@@ -99,20 +99,26 @@ public class AuthService {
                 // Достаем пользователя, которому принадлежит токен
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    // Формируем UserDetails для генерации нового JWT
+                    // 1. УДАЛЯЕМ СТАРЫЙ REFRESH-ТОКЕН (Ротация!)
+                    refreshTokenService.deleteByUserId(user.getUsername());
+
+                    // 2. ГЕНЕРИРУЕМ НОВЫЙ REFRESH-ТОКЕН И СОХРАНЯЕМ В БД
+                    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getUsername());
+
+                    // Формируем UserDetails для генерации нового JWT Access
                     UserDetails userDetails = org.springframework.security.core.userdetails.User
                             .withUsername(user.getUsername())
                             .password(user.getPassword())
                             .authorities(user.getRole().name())
                             .build();
 
-                    // Генерируем только новый Access-токен на 15 минут
+                    // 3. ГЕНЕРИРУЕМ НОВЫЙ ACCESS-ТОКЕН
                     String accessToken = jwtUtil.generateToken(userDetails);
 
-                    // Возвращаем старый рефреш и новый аксцесс
+                    // Возвращаем НОВЫЙ аксцесс и НОВЫЙ рефреш
                     return AuthResponse.builder()
                             .accessToken(accessToken)
-                            .refreshToken(requestRefreshToken)
+                            .refreshToken(newRefreshToken.getToken()) // <--- Теперь отдаем новый UUID!
                             .username(user.getUsername())
                             .build();
                 })

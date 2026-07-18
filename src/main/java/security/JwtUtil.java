@@ -17,27 +17,34 @@ import java.util.function.Function;
 
 @Component
 @AllArgsConstructor
-public class JwtUtil {
+public class JwtUtil { //READY
+    // СОЗДАНИЕ ACCESS ТОКЕНА
+    // Проверка Валидации Токена
+    // Достать Ключ
+    // Достать UserName и Срок Завершения Токена
     private final JwtProperties jwtProperties;
 
+    //Метод дающий Ключ как SecretKey
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    //3.Метод достающий из токена UserName
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-
+    //3.Метод достающий из токена срок завершения
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    //2.Вспомогательный метод
+    public <R> R extractClaim(String token, Function<Claims, R> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-
+    //1.Достать все клеймы и поместить их в Claims
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -46,18 +53,18 @@ public class JwtUtil {
                 .getPayload();
     }
 
+    //Метод проверки срока токена
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
-    // Генерация токена для пользователя
+    //ГЕНЕРАЦИЯ ТОКЕНА
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        // В коммерческих проектах в токен часто закладывают роли, чтобы фронтенд их видел сразу
         claims.put("roles", userDetails.getAuthorities());
         return createToken(claims, userDetails.getUsername());
     }
-
+    //СОЗДАНИЕ ТОКЕНА
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .claims(claims)
@@ -68,7 +75,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Валидация токена
+    //Проверка валидация токена
     public Boolean validateToken(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
