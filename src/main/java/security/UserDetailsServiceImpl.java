@@ -1,8 +1,8 @@
 package security;
 
-import entity.User; // Исправили здесь
+import entity.User;
 import lombok.AllArgsConstructor;
-import repository.UserRepository; // Исправили здесь
+import repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,7 +14,8 @@ import java.util.Collections;
 
 @Service
 @AllArgsConstructor
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService { //READY
+    //Переопределение метода loadUserByUsername для Интерфейса UserDetailsService
     private final UserRepository userRepository;
 
     @Override
@@ -23,7 +24,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        // Адаптируем нашего Entity-пользователя под объект, который понимает Spring Security
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),

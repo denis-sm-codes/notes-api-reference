@@ -18,7 +18,12 @@ import java.io.IOException;
 
 @Component
 @AllArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter { //READY
+    //Приём HTTP Запроса
+    //Проверка есть ли Токен
+    //Проверка есть ли Контекст, создаёт если нет
+    //Сохранение данных входящего запроса
+    //Отправка запроса в Цепь Фильтров после двух проверок
     private final JwtUtil jwtUtils;
     private final UserDetailsService userDetailsService;
 
@@ -33,16 +38,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // Если заголовка нет или он не начинается с Bearer — пропускаем запрос дальше по цепочке
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7); // Отрезаем "Bearer " и получаем чистый токен
+        jwt = authHeader.substring(7);
         username = jwtUtils.extractUsername(jwt);
 
-        // Если токен валидный и пользователь еще не аутентифицирован в текущем потоке запроса
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
@@ -54,11 +57,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Сохраняем пользователя в контекст безопасности Спринга
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }

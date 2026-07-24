@@ -3,6 +3,7 @@ package security;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,29 +19,30 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity //Поднимает SecurityFilterChain, AuthenticationConfiguration, SecurityContextHolderStrategy, WebSecurity, Security Evaluators & Handlers
 @AllArgsConstructor
-public class SecurityConfig {
+public class SecurityConfig { //READY
+    // Метод SecurityFilterChain Цепочка Фильтров
+    // Провайдер проверки логина и пароля
+    // Менеджер Провайдера
+    // Хеширование пароля
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // В продакшене REST API мы отключаем CSRF, так как токены защищены от этого типа атак
                 .csrf(AbstractHttpConfigurer::disable)
+
                 .authorizeHttpRequests(auth -> auth
-                        // Разрешаем регистрацию и вход всем без авторизации
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        // Любой другой запрос требует токен
-                        .anyRequest().authenticated()
-                )
-                // Делаем сессии без сохранения состояния (Stateless)
+                        .requestMatchers(HttpMethod.POST,"/api/v1/auth/public/**").permitAll()
+                        .anyRequest().authenticated())
+
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authenticationProvider(authenticationProvider())
-                // Вставляем наш JWT фильтр прямо перед стандартным фильтром обработки логина
+
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -61,7 +63,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Сильнейший алгоритм шифрования паролей
         return new BCryptPasswordEncoder();
     }
 }
