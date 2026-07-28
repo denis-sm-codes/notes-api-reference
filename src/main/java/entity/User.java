@@ -2,6 +2,9 @@ package entity;
 
 import entity.BaseEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Entity
@@ -18,12 +21,14 @@ public class User extends BaseEntity {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
+    @Size(min = 5, max = 50, message = "Name must be between 5 and 50 characters")
     private String username;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
+    @NotBlank(message = "Email cannot be empty")
+    @Email(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Email must be valid")
+    String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String password;
 
     @Enumerated(EnumType.STRING)

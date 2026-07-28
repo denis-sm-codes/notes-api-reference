@@ -18,10 +18,10 @@ import java.util.function.Function;
 @Component
 @AllArgsConstructor
 public class JwtUtil { //READY
-    // СОЗДАНИЕ ACCESS ТОКЕНА
-    // Проверка Валидации Токена
-    // Достать Ключ
-    // Достать UserName и Срок Завершения Токена
+    //СОЗДАНИЕ ACCESS ТОКЕНА
+    //Проверка Валидации Токена
+    //Достать Ключ
+    //Достать UserName и Срок Завершения Токена
     private final JwtProperties jwtProperties;
 
     //Метод дающий Ключ как SecretKey

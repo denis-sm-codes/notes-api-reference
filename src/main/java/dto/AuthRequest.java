@@ -1,13 +1,11 @@
 package dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class AuthRequest {
-    private String username;
-    private String password;
-}
+public record AuthRequest(
+        @NotBlank(message = "Username or email cannot be empty")
+        String nameOrEmail,
+
+        @NotBlank(message = "Password cannot be empty")
+        String password
+) {}

@@ -22,16 +22,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity //Поднимает SecurityFilterChain, AuthenticationConfiguration, SecurityContextHolderStrategy, WebSecurity, Security Evaluators & Handlers
 @AllArgsConstructor
 public class SecurityConfig { //READY
-    // Метод SecurityFilterChain Цепочка Фильтров
-    // Провайдер проверки логина и пароля
-    // Менеджер Провайдера
-    // Хеширование пароля
+    //Метод SecurityFilterChain Цепочка Фильтров
+    //Провайдер проверки логина и пароля
+    //Менеджер Провайдера
+    //Хеширование пароля
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                //1. SecurityContextHolderFilter
+                //2. HeaderWriterFilter
+                //3. LogoutFilter
+                //4. JwtAuthenticationFilter
+                //5. SecurityContextHolderAwareRequestFilter
+                //6. AnonymousAuthenticationFilter
+                //7. SessionManagementFilter
+                //8. ExceptionTranslationFilter
+                //9. AuthorizationFilter
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth

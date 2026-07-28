@@ -1,6 +1,7 @@
 package security;
 
 import entity.RefreshToken;
+import entity.User;
 import lombok.AllArgsConstructor;
 import repository.RefreshTokenRepository;
 import repository.UserRepository;
@@ -14,10 +15,10 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class RefreshTokenService { //READY
-    // СОЗДАНИЕ REFRESH TOKEN
-    // Вернуть RefreshToken, если он существует
-    // Удалить RefreshToken, если его срок истёк
-    // Удалить RefreshToken у Пользователя
+    //СОЗДАНИЕ REFRESH TOKEN
+    //Вернуть RefreshToken, если он существует
+    //Удалить RefreshToken, если его срок истёк
+    //Удалить RefreshToken у Пользователя
     private final JwtProperties jwtProperties;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
@@ -53,7 +54,14 @@ public class RefreshTokenService { //READY
 
     //Удалить RefreshToken у Пользователя
     @Transactional
-    public void deleteByUserId(String username) {
-        userRepository.findByUsername(username).ifPresent(refreshTokenRepository::deleteByUser);
+    public void deleteByUserId(Long userId) {
+        refreshTokenRepository.deleteByUserId(userId);
     }
+
+    @Transactional
+    public void deleteByUserName(String name) {
+        refreshTokenRepository.deleteByUserName(name);
+    }
+
+
 }
