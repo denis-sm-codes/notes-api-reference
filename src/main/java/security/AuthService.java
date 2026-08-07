@@ -1,14 +1,18 @@
 package security;
 
-import dto.AuthRequest;
-import dto.AuthResponse;
-import dto.RegisterRequest;
+import dto.request.AuthRequest;
+import dto.response.AuthResponse;
+import dto.request.RegisterRequest;
 import entity.Role;
 import entity.User;
 import entity.RefreshToken;
 import exception.TokenRefreshException;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import repository.RefreshTokenRepository;
 import repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -30,6 +36,7 @@ public class AuthService { //READY
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     //Регитсрация пользователя
     @Transactional
@@ -73,16 +80,24 @@ public class AuthService { //READY
         );
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
         String accessToken = jwtUtil.generateToken(userDetails);
 
-        refreshTokenService.deleteByUserName(userDetails.getUsername());
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUsername());
+        refreshTokenService.deleteByUser(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUsername());
+
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
         return AuthResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken.getToken())
-                .username(userDetails.getUsername())
+                .roles(roles)
                 .build();
     }
 
@@ -109,5 +124,12 @@ public class AuthService { //READY
                             .build();
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token is not in database"));
+    }
+
+    @Transactional
+    public void logout(){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found " + username));
+        refreshTokenRepository.deleteByUser(user);
     }
 };

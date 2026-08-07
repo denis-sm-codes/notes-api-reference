@@ -52,16 +52,21 @@ public class RefreshTokenService { //READY
         return token;
     }
 
-    //Удалить RefreshToken у Пользователя
+    //Удалить токен по сущности User
+    @Transactional
+    public void deleteByUser(User user) {
+        refreshTokenRepository.deleteByUser(user);
+    }
+
+    //Удалить токен по Username пользователя
+    @Transactional
+    public void deleteByUsername(String username) {
+        refreshTokenRepository.deleteByUsername(username);
+    }
+
+    //Удалить токен по ID пользователя
     @Transactional
     public void deleteByUserId(Long userId) {
         refreshTokenRepository.deleteByUserId(userId);
     }
-
-    @Transactional
-    public void deleteByUserName(String name) {
-        refreshTokenRepository.deleteByUserName(name);
-    }
-
-
 }
