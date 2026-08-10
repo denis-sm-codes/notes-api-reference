@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import repository.NoteRepository;
 import repository.UserRepository;
 
-import java.util.Optional;
-
 @Service
 @AllArgsConstructor
 public class NoteService {
@@ -50,7 +48,7 @@ public class NoteService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
 
-        Note note = noteRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new NoteNotFoundException(id));
+        Note note = noteRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new NoteNotFoundException(id, user.getId()));
 
         return NoteResponse.builder()
                 .id(note.getId())
@@ -61,11 +59,47 @@ public class NoteService {
                 .build();
     };
 
-//    public Page<NoteResponse> getAllUserNotes(Pageable pageable){};
-//
-//    public NoteResponse updateNote(Long id, UpdateNoteRequest request){};
-//
-//    public void deleteNote(Long id){};
+    @Transactional(readOnly = true)
+    public Page<NoteResponse> getAllUserNotes(Pageable pageable){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
 
+        Page<Note> notes = noteRepository.findAllByUserId(user.getId(), pageable);
 
+        return notes.map(note -> NoteResponse.builder()
+                .id(note.getId())
+                .title(note.getTitle())
+                .content(note.getContent())
+                .createdAt(note.getCreatedAt())
+                .updatedAt(note.getUpdatedAt())
+                .build());
+    };
+
+    @Transactional
+    public NoteResponse updateNote(Long id, UpdateNoteRequest request){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
+        Note note = noteRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new NoteNotFoundException(id, user.getId()));
+        note.setTitle(request.title());
+        note.setContent(request.content());
+
+        return NoteResponse.builder()
+                .id(note.getId())
+                .title(note.getTitle())
+                .content(note.getContent())
+                .createdAt(note.getCreatedAt())
+                .updatedAt(note.getUpdatedAt())
+                .build();
+    };
+
+    @Transactional
+    public void deleteNote(Long id){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
+        Note note = noteRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new NoteNotFoundException(id, user.getId()));
+
+        noteRepository.delete(note);
+    };
 }

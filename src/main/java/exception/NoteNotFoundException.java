@@ -1,6 +1,5 @@
 package exception;
 
-import entity.Note;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -11,7 +10,7 @@ public class NoteNotFoundException extends RuntimeException {
         super(message);
     }
 
-    public NoteNotFoundException(Long id) {
-        super("Note not found with id: " + id);
+    public NoteNotFoundException(Long id, Long userId) {
+        super("Note with id " + id + " not found for user with id " + userId);
     }
 }
