@@ -13,4 +13,8 @@ public class NoteNotFoundException extends RuntimeException {
     public NoteNotFoundException(Long id, Long userId) {
         super("Note with id " + id + " not found for user with id " + userId);
     }
+
+    public NoteNotFoundException(Long id) {
+        super("Note with id " + id + " not found");
+    }
 }

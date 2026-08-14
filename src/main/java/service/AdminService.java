@@ -4,6 +4,7 @@ import dto.response.NoteResponse;
 import dto.response.UserResponseDto;
 import entity.Note;
 import entity.User;
+import exception.NoteNotFoundException;
 import exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +23,7 @@ public class AdminService {
     private final NoteRepository noteRepository;
 
     @Transactional(readOnly = true)
-    public List<UserResponseDto> getAllAccounts(Pageable pageable) {
+    public List<UserResponseDto> getAllAccounts() {
         List<User> users = userRepository.findAll();
 
         return users.stream().map(user -> new UserResponseDto(
@@ -61,15 +62,27 @@ public class AdminService {
                 .build());
     }
 
+    @Transactional
     public void deleteNoteById(Long id) {
+        if (!noteRepository.existsById(id)){
+            throw new NoteNotFoundException(id);
+        }
         noteRepository.deleteById(id);
     }
 
+    @Transactional
     public void deleteUserById(Long id) {
+        if (!userRepository.existsById(id)){
+            throw new UserNotFoundException(id);
+        }
         userRepository.deleteById(id);
     }
 
+    @Transactional
     public void deleteUserByName(String name) {
+        if (!userRepository.existsByUsername(name)){
+            throw new UserNotFoundException(name);
+        }
         userRepository.deleteByUsername(name);
     }
 }
