@@ -15,12 +15,18 @@ spring:
     open-in-view: false
     properties:
       hibernate:
-       format_sql: true
+        format_sql: true
 
   flyway:
     enabled: true
 
-  jwt:
-    secret: ${JWT_SECRET}
-    access-expiration: 900000
-    refresh-expiration: 5184000000
+app:
+  admin:
+    username: ${ADMIN_USERNAME}
+    password: ${ADMIN_PASSWORD}
+    email: ${ADMIN_EMAIL}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: 900000
+  refresh-expiration: 5184000000

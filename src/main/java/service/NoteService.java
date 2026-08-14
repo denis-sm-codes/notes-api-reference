@@ -6,6 +6,7 @@ import dto.response.NoteResponse;
 import entity.Note;
 import entity.User;
 import exception.NoteNotFoundException;
+import exception.UserNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,9 @@ public class NoteService {
     @Transactional
     public NoteResponse createNote(CreateNoteRequest request){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
+        User principal = (User) authentication.getPrincipal();
+
+        User user = userRepository.findById(principal.getId()).orElseThrow(() -> new UserNotFoundException(principal.getId()));
 
         Note note = Note.builder()
                 .user(user)
@@ -33,6 +36,9 @@ public class NoteService {
                 .content(request.content())
                 .build();
         Note savedNote = noteRepository.save(note);
+
+        user.setNoteCount(user.getNoteCount() + 1);
+        userRepository.save(user);
 
         return NoteResponse.builder()
                 .id(savedNote.getId())
@@ -96,9 +102,12 @@ public class NoteService {
     @Transactional
     public void deleteNote(Long id){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
+        User principal = (User) authentication.getPrincipal();
+
+        User user = userRepository.findById(principal.getId()).orElseThrow(() -> new UserNotFoundException(principal.getId()));
 
         Note note = noteRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new NoteNotFoundException(id, user.getId()));
+        user.setNoteCount(user.getNoteCount() - 1);
 
         noteRepository.delete(note);
     };
