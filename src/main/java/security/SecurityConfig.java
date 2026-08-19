@@ -50,7 +50,7 @@ public class SecurityConfig { //READY
 
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                        .requestMatchers("/api/v1/notes/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/v1/account/**").hasAnyRole("USER", "ADMIN")
 
                         .anyRequest().authenticated())
 
