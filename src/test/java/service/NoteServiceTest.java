@@ -4,6 +4,7 @@ import dto.request.CreateNoteRequest;
 import dto.response.NoteResponse;
 import entity.Note;
 import entity.User;
+import exception.NoteNotFoundException;
 import exception.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,24 +39,23 @@ public class NoteServiceTest {
 
     @Test
     void createNote_Success_ReturnsNoteResponse() {
-        // 1. ARRANGE (Подготовка данных и моков)
         Long userId = 1L;
         User user = User.builder()
                 .id(userId)
-                .username("denis")
+                .username("Test_Name")
                 .noteCount(0)
                 .build();
 
-        CreateNoteRequest request = new CreateNoteRequest("Заголовок", "Текст заметки");
+        CreateNoteRequest request = new CreateNoteRequest("Test Title", "Test Content");
 
-        // Мокаем SecurityContextHolder, чтобы метод смог достать текущего пользователя
         Authentication authentication = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
+
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(user);
+
         SecurityContextHolder.setContext(securityContext);
 
-        // Мокаем работу с репозиториями
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         Note savedNote = Note.builder()
@@ -69,45 +69,110 @@ public class NoteServiceTest {
 
         when(noteRepository.save(any(Note.class))).thenReturn(savedNote);
 
-        // 2. ACT (Вызов тестируемого метода)
         NoteResponse response = noteService.createNote(request);
 
-        // 3. ASSERT (Проверки)
         assertNotNull(response);
         assertEquals(100L, response.id());
         assertEquals("Заголовок", response.title());
         assertEquals("Текст заметки", response.content());
         assertEquals(1, user.getNoteCount()); // Проверяем, что счетчик заметок увеличился
 
-        // Проверяем, что сохранения в БД действительно вызывались
         verify(noteRepository, times(1)).save(any(Note.class));
         verify(userRepository, times(1)).save(user);
 
-        // Очищаем контекст безопасности после теста
         SecurityContextHolder.clearContext();
     }
 
     @Test
     void createNote_WhenUserNotFound_ThrowsUserNotFoundException() {
-        // ARRANGE
         Long userId = 1L;
-        User user = User.builder().id(userId).username("denis").build();
-        CreateNoteRequest request = new CreateNoteRequest("Заголовок", "Текст");
+        User user = User.builder().id(userId).username("Test_Name").build();
+        CreateNoteRequest request = new CreateNoteRequest("Test Title", "Test Content");
 
         Authentication authentication = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
+
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(user);
         SecurityContextHolder.setContext(securityContext);
 
-        // Пользователь НЕ найден в репозитории
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // ACT & ASSERT (Ждем выброс исключения)
         assertThrows(UserNotFoundException.class, () -> noteService.createNote(request));
 
-        // Убеждаемся, что заметку даже не пытались сохранить
         verify(noteRepository, never()).save(any(Note.class));
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void getNoteById_Success_ReturnsNoteResponse(){
+        Long userId = 1L;
+        User user = User.builder().id(userId).username("Test_Name").build();
+
+        Long noteId = 100L;
+        Note noteFromDB = Note.builder()
+                .id(noteId)
+                .user(user)
+                .title("Test Title")
+                .content("Test Content")
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .build();
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.of(noteFromDB));
+
+        NoteResponse noteResponse = noteService.getNoteById(noteId);
+
+        assertNotNull(noteResponse);
+        assertEquals(noteFromDB.getId(), noteResponse.id());
+        assertEquals(noteFromDB.getTitle(), noteResponse.title());
+        assertEquals(noteFromDB.getContent(), noteResponse.content());
+        assertEquals(noteFromDB.getCreatedAt(), noteResponse.createdAt());
+        assertEquals(noteFromDB.getUpdatedAt(), noteResponse.updatedAt());
+
+        verify(noteRepository, times(1)).findByIdAndUserId(noteId, userId);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void getNoteById_WhenNoteNotFound_ThenThrowsNoteNotFoundException(){
+        Long userId = 1L;
+        User user = User.builder().id(userId).username("Test_Name").build();
+
+        Long noteId = 100L;
+        Note noteFromDB = Note.builder()
+                .id(noteId)
+                .user(user)
+                .title("Test Title")
+                .content("Test Content")
+                .createdAt(ZonedDateTime.now())
+                .updatedAt(ZonedDateTime.now())
+                .build();
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.empty());
+
+        assertThrows(NoteNotFoundException.class, () -> noteService.getNoteById(noteId));
+
+        verify(noteRepository, times(1)).findByIdAndUserId(noteId, userId);
+        verifyNoMoreInteractions(noteRepository);
 
         SecurityContextHolder.clearContext();
     }
