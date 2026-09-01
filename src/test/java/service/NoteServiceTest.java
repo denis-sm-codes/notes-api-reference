@@ -1,6 +1,7 @@
 package service;
 
 import dto.request.CreateNoteRequest;
+import dto.request.UpdateNoteRequest;
 import dto.response.NoteResponse;
 import entity.Note;
 import entity.User;
@@ -11,14 +12,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import repository.NoteRepository;
 import repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,8 +79,8 @@ public class NoteServiceTest {
 
         assertNotNull(response);
         assertEquals(100L, response.id());
-        assertEquals("Заголовок", response.title());
-        assertEquals("Текст заметки", response.content());
+        assertEquals("Test Title", response.title());
+        assertEquals("Test Content", response.content());
         assertEquals(1, user.getNoteCount()); // Проверяем, что счетчик заметок увеличился
 
         verify(noteRepository, times(1)).save(any(Note.class));
@@ -176,4 +182,155 @@ public class NoteServiceTest {
 
         SecurityContextHolder.clearContext();
     }
+
+    @Test
+    void getAllUserNotes_Success_ReturnPageOfNoteResponses(){
+        User user = User.builder().id(1L).username("Test Name").build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Note note1 = Note.builder().id(101L).user(user).title("Test title1").content("Test Content1").build();
+        Note note2 = Note.builder().id(102L).user(user).title("Test title2").content("Test Content2").build();
+        List<Note> listNotes = List.of(note1, note2);
+
+        Page<Note> pages = new PageImpl<>(listNotes, pageable, listNotes.size());
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(noteRepository.findAllByUserId(user.getId(), pageable)).thenReturn(pages);
+
+        Page<NoteResponse> resultPages = noteService.getAllUserNotes(pageable);
+
+        assertNotNull(resultPages);
+        assertEquals(2, resultPages.getTotalElements());
+        assertEquals(0, resultPages.getNumber());
+        assertEquals(10, resultPages.getSize());
+
+        NoteResponse firstResponse = resultPages.getContent().get(0);
+        assertEquals(note1.getId(), firstResponse.id());
+        assertEquals(note1.getTitle(), firstResponse.title());
+
+        verify(noteRepository, times(1)).findAllByUserId(user.getId(), pageable);
+        verifyNoMoreInteractions(noteRepository);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void getAllUserNotes_WhenUserHasNoNotes_ReturnsEmptyPAge(){
+        Long userId = 1L;
+        User user = User.builder().id(userId).username("Test Name").build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<Note> emptyPage = Page.empty(pageable);
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(noteRepository.findAllByUserId(userId, pageable)).thenReturn(emptyPage);
+
+        Page<NoteResponse> result = noteService.getAllUserNotes(pageable);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        assertEquals(0, result.getTotalElements());
+
+        verify(noteRepository, times(1)).findAllByUserId(userId,pageable);
+        verifyNoMoreInteractions(noteRepository);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void updateNote_Success_ReturnsUpdatedNote(){
+        Long noteId = 1L;
+        Long userId = 2L;
+        User user = User.builder().id(userId).username("Test Name").build();
+        UpdateNoteRequest updateNoteRequest = new UpdateNoteRequest("New Title", "New Content");
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+
+        Note note = Note.builder()
+                .user(user)
+                .id(noteId)
+                .title("Old Title")
+                .content("Old Content")
+                .createdAt(zonedDateTime)
+                .updatedAt(zonedDateTime)
+                .build();
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.of(note));
+
+        NoteResponse noteResponse = noteService.updateNote(noteId, updateNoteRequest);
+
+        assertNotNull(noteResponse);
+        assertEquals(noteId, noteResponse.id());
+        assertEquals(updateNoteRequest.title(), noteResponse.title());
+        assertEquals(updateNoteRequest.content(), noteResponse.content());
+        assertEquals(zonedDateTime, noteResponse.updatedAt());
+
+        verify(noteRepository, times(1)).findByIdAndUserId(noteId, userId);
+        verifyNoMoreInteractions(noteRepository);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void NoteResponse_WhenNoteNotFound_ThenThrowsNoteNotFoundException(){
+        Long noteId = 1L;
+        Long userId = 2L;
+        User user = User.builder().id(userId).username("Test Name").build();
+        UpdateNoteRequest updateNoteRequest = new UpdateNoteRequest("New Title", "New Content");
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.empty());
+
+        try {
+            assertThrows(NoteNotFoundException.class, () -> noteService.updateNote(noteId, updateNoteRequest));
+
+            verify(noteRepository, times(1)).findByIdAndUserId(noteId, userId);
+            verifyNoMoreInteractions(noteRepository);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
