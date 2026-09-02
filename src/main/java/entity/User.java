@@ -46,7 +46,8 @@ public class User implements UserDetails {
     @NotNull
     @Min(0)
     @Column(name = "note_count", nullable = false)
-    private Integer noteCount = 0;
+    private Long noteCount = 0L;
+
 
     @Override
     public boolean equals(Object o) {

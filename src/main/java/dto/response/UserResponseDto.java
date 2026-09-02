@@ -16,5 +16,5 @@ public record UserResponseDto(
 
         Role role,
 
-        Integer noteCount
+        Long noteCount
 ) {}

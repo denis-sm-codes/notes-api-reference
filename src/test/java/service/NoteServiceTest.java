@@ -19,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
+
 import repository.NoteRepository;
 import repository.UserRepository;
 
@@ -49,7 +49,7 @@ public class NoteServiceTest {
         User user = User.builder()
                 .id(userId)
                 .username("Test_Name")
-                .noteCount(0)
+                .noteCount(0L)
                 .build();
 
         CreateNoteRequest request = new CreateNoteRequest("Test Title", "Test Content");
@@ -290,7 +290,7 @@ public class NoteServiceTest {
     }
 
     @Test
-    void NoteResponse_WhenNoteNotFound_ThenThrowsNoteNotFoundException(){
+    void updateNote_WhenNoteNotFound_ThenThrowsNoteNotFoundException(){
         Long noteId = 1L;
         Long userId = 2L;
         User user = User.builder().id(userId).username("Test Name").build();
@@ -305,16 +305,126 @@ public class NoteServiceTest {
 
         when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.empty());
 
-        try {
-            assertThrows(NoteNotFoundException.class, () -> noteService.updateNote(noteId, updateNoteRequest));
+        assertThrows(NoteNotFoundException.class, () -> noteService.updateNote(noteId, updateNoteRequest));
 
             verify(noteRepository, times(1)).findByIdAndUserId(noteId, userId);
             verifyNoMoreInteractions(noteRepository);
-        } finally {
+
             SecurityContextHolder.clearContext();
-        }
+
     }
 
+    @Test
+    void deleteNote_Success_DecrementsNoteCountAndDeletesNote(){
+        Long noteId = 1L;
+        Long userId = 2L;
+        Long initialNoteCount = 1L;
+        User user = User.builder().id(userId).username("Test Name").noteCount(initialNoteCount).build();
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+
+        Note note = Note.builder()
+                .user(user)
+                .id(noteId)
+                .title("Test Title")
+                .content("Test Content")
+                .createdAt(zonedDateTime)
+                .updatedAt(zonedDateTime)
+                .build();
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.of(note));
+
+        noteService.deleteNote(noteId);
+        Long newNoteCount = user.getNoteCount();
+
+        assertEquals(0L, user.getNoteCount());
+        assertEquals(newNoteCount, user.getNoteCount());
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(noteRepository, times(1)).findByIdAndUserId(noteId, userId);
+        verify(noteRepository, times(1)).delete(note);
+
+        verifyNoMoreInteractions(userRepository, noteRepository);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void deleteNote_WhenUserNotFound_ThrowsUserNotFoundException(){
+        Long noteId = 1L;
+        Long userId = 1L;
+        Long noteCount = 1L;
+        User user = User.builder().id(userId).username("Test Name").noteCount(noteCount).build();
+
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+        Note note = Note.builder()
+                .user(user)
+                .id(noteId)
+                .title("Test Title")
+                .content("Test Content")
+                .createdAt(zonedDateTime)
+                .updatedAt(zonedDateTime)
+                .build();
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findById(noteId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> noteService.deleteNote(noteId));
+
+        verify(userRepository, times(1)).findById(userId);
+        verifyNoMoreInteractions(userRepository);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void deleteNote_WhenNoteNotFound_ThrowsNoteNotFoundException(){
+        Long noteId = 1L;
+        Long userId = 1L;
+        Long noteCount = 1L;
+        User user = User.builder().id(userId).username("Test Name").noteCount(noteCount).build();
+
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+        Note note = Note.builder()
+                .user(user)
+                .id(noteId)
+                .title("Test Title")
+                .content("Test Content")
+                .createdAt(zonedDateTime)
+                .updatedAt(zonedDateTime)
+                .build();
+
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(noteRepository.findByIdAndUserId(noteId, userId)).thenReturn(Optional.empty());
+
+        assertThrows(NoteNotFoundException.class, () -> noteService.deleteNote(noteId));
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(noteRepository, times(1)).findByIdAndUserId(noteId, userId);
+        verifyNoMoreInteractions(userRepository, noteRepository);
+
+        SecurityContextHolder.clearContext();
+    }
 }
 
 
