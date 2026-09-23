@@ -4,6 +4,7 @@ import entity.Role;
 import entity.User;
 import initializer.AdminInitializer;
 import initializer.AdminProperties;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +34,7 @@ class AdminInitializerTest {
     private AdminInitializer adminInitializer;
 
     @Test
+    @DisplayName("Создание Администратора Успех")
     void run_WhenAdminDoesNotExist_CreatesAdminSuccessfully() throws Exception {
         when(userRepository.existsByUsername("admin")).thenReturn(false);
         when(adminProperties.getUsername()).thenReturn("admin");
@@ -56,6 +58,7 @@ class AdminInitializerTest {
     }
 
     @Test
+    @DisplayName("Администратор существует Успех")
     void run_WhenAdminAlreadyExists_DoesNotCreateAdmin() throws Exception {
         when(userRepository.existsByUsername("admin")).thenReturn(true);
 

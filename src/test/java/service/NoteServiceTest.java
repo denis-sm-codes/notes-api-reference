@@ -7,6 +7,7 @@ import entity.Note;
 import entity.User;
 import exception.NoteNotFoundException;
 import exception.UserNotFoundException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,6 +45,7 @@ public class NoteServiceTest {
     private NoteService noteService;
 
     @Test
+    @DisplayName("Создание Заметки Успех")
     void createNote_Success_ReturnsNoteResponse() {
         Long userId = 1L;
         User user = User.builder()
@@ -90,6 +92,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Создание Заметки Исключение")
     void createNote_WhenUserNotFound_ThrowsUserNotFoundException() {
         Long userId = 1L;
         User user = User.builder().id(userId).username("Test_Name").build();
@@ -112,6 +115,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Найти Заметки по ID Успех")
     void getNoteById_Success_ReturnsNoteResponse(){
         Long userId = 1L;
         User user = User.builder().id(userId).username("Test_Name").build();
@@ -151,6 +155,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Найти Заметки по ID Исключение")
     void getNoteById_WhenNoteNotFound_ThenThrowsNoteNotFoundException(){
         Long userId = 1L;
         User user = User.builder().id(userId).username("Test_Name").build();
@@ -184,6 +189,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Получить все Заметки Успех")
     void getAllUserNotes_Success_ReturnPageOfNoteResponses(){
         User user = User.builder().id(1L).username("Test Name").build();
         Pageable pageable = PageRequest.of(0, 10);
@@ -221,6 +227,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Получить все Заметки Исключение")
     void getAllUserNotes_WhenUserHasNoNotes_ReturnsEmptyPAge(){
         Long userId = 1L;
         User user = User.builder().id(userId).username("Test Name").build();
@@ -250,6 +257,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Обновить Заметку Успех")
     void updateNote_Success_ReturnsUpdatedNote(){
         Long noteId = 1L;
         Long userId = 2L;
@@ -290,6 +298,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Обновить Заметку Исключение")
     void updateNote_WhenNoteNotFound_ThenThrowsNoteNotFoundException(){
         Long noteId = 1L;
         Long userId = 2L;
@@ -315,6 +324,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Заметку Успех")
     void deleteNote_Success_DecrementsNoteCountAndDeletesNote(){
         Long noteId = 1L;
         Long userId = 2L;
@@ -357,6 +367,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Заметку Исключение #1")
     void deleteNote_WhenUserNotFound_ThrowsUserNotFoundException(){
         Long noteId = 1L;
         Long userId = 1L;
@@ -391,6 +402,7 @@ public class NoteServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Заметку Исключение #2")
     void deleteNote_WhenNoteNotFound_ThrowsNoteNotFoundException(){
         Long noteId = 1L;
         Long userId = 1L;

@@ -7,6 +7,7 @@ import entity.Role;
 import entity.User;
 import exception.NoteNotFoundException;
 import exception.UserNotFoundException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,6 +45,7 @@ public class AdminServiceTest {
     private AdminService adminService;
 
     @Test
+    @DisplayName("Получить всех Пользователей Успех")
     void getAllAccounts_Success_ReturnsListOfResponseDto(){
         User user1 = User.builder()
                 .id(1L)
@@ -88,6 +90,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Получить всех Пользователей Пустой Лист")
     void getAllAccounts_WhenNoUsers_ReturnsEmptyList() {
         when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -101,6 +104,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Получить Пользователя по Имени Успех")
     void getUserByUsername_Success_ReturnsUserResponseDto(){
         User user = User.builder()
                 .id(1L)
@@ -126,6 +130,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Получить Пользователя по Имени Исключение")
     void getUserByUsername_WhenUserNotFound_ThrowsUserNotFoundException() {
         String request = "Test Name";
 
@@ -138,6 +143,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Получить Заметки по Пользователю Успех")
     void getAllNotesByUser_Success_ReturnsPageOfNoteResponses(){
         String request = "Test Name1";
 
@@ -172,6 +178,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Получить Заметки по Пользователю Исключение")
     void getAllNotesByUser_WhenUserNotFound_ThrowsUserNotFoundException() {
         String username = "Test Name";
         Pageable pageable = PageRequest.of(0, 10);
@@ -186,6 +193,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Замету по ID Успех")
     void deleteNoteById_Success_DeletesNote(){
         Long noteId = 1L;
 
@@ -199,6 +207,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Замету по ID Исключение")
     void deleteNoteById_WhenNoteNotFound_ThrowsNoteNotFoundException(){
         Long noteId = 1L;
 
@@ -211,6 +220,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Пользователя по ID Успех")
     void deleteUserById_Success_DeletesUser(){
         Long userId = 1L;
 
@@ -224,6 +234,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Пользователя по ID Исключение")
     void deleteUserById_WhenUserNotExist_ThrowsUserNotFoundException(){
         Long userId = 1L;
 
@@ -236,6 +247,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Пользователя по Имени Успех")
     void deleteUserByName_Success_DeletesUser(){
         String username = "Test Name";
 
@@ -249,6 +261,7 @@ public class AdminServiceTest {
     }
 
     @Test
+    @DisplayName("Удалить Пользователя по Имени Исключение")
     void deleteUserByName_WhenUserNotExist_ThrowsUserNotFoundException(){
         String username = "Test Name";
 
