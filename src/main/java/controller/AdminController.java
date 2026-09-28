@@ -20,22 +20,27 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @GetMapping("/get_accounts")
-    public List<UserResponseDto> getAllAccounts(){
-        return adminService.getAllAccounts();
-    }
+//    @GetMapping("/get_accounts")
+//    public List<UserResponseDto> getAllAccounts(@PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+//        return adminService.getAllAccounts(pageable);
+//    }
 
     @GetMapping("/get_user/{username}")
     public UserResponseDto getUserByUsername(@PathVariable String username){
         return adminService.getUserByUsername(username);
     }
 
-    @GetMapping("/get_notes/{username}")
-    public Page<NoteResponse> getAllNotesByUser(
-            @PathVariable String username,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+//    @GetMapping("/get_notes/{username}")
+//    public Page<NoteResponse> getAllNotesByUser(
+//            @PathVariable String username,
+//            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+//
+//        return adminService.getAllNotesByUser(username, pageable);
+//    }
 
-        return adminService.getAllNotesByUser(username, pageable);
+    @GetMapping
+    public long getAllUserCount(){
+        return adminService.getTotalUsersCount();
     }
 
     @DeleteMapping("/delete_note/{id}")

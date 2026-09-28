@@ -22,18 +22,18 @@ public class AdminService {
     private final UserRepository userRepository;
     private final NoteRepository noteRepository;
 
-    @Transactional(readOnly = true)
-    public List<UserResponseDto> getAllAccounts() {
-        List<User> users = userRepository.findAll();
-
-        return users.stream().map(user -> new UserResponseDto(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole(),
-                user.getNoteCount()
-        )).toList();
-    }
+//    @Transactional(readOnly = true)
+//    public Page<UserResponseDto> getAllAccounts(Pageable pageable) {
+//        return userRepository.findAll(pageable)
+//                .map(user -> new UserResponseDto(
+//                        user.getId(),
+//                        user.getUsername(),
+//                        user.getEmail(),
+//                        user.getRole(),
+//                        user.getNoteCount(),
+//                        user.getCreatedAt()
+//                ));
+//    }
 
     @Transactional(readOnly = true)
     public UserResponseDto getUserByUsername(String username) {
@@ -45,21 +45,26 @@ public class AdminService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .noteCount(user.getNoteCount())
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 
-    @Transactional(readOnly = true)
-    public Page<NoteResponse> getAllNotesByUser(String username, Pageable pageable) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
-        Page<Note> notes = noteRepository.findAllByUserId(user.getId(), pageable);
+//    @Transactional(readOnly = true)
+//    public Page<NoteResponse> getAllNotesByUser(String username, Pageable pageable) {
+//        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
+//        Page<Note> notes = noteRepository.findAllByUserId(user.getId(), pageable);
+//
+//        return notes.map(note -> NoteResponse.builder()
+//                .id(note.getId())
+//                .title(note.getTitle())
+//                .content(note.getContent())
+//                .createdAt(note.getCreatedAt())
+//                .updatedAt(note.getUpdatedAt())
+//                .build());
+//    }
 
-        return notes.map(note -> NoteResponse.builder()
-                .id(note.getId())
-                .title(note.getTitle())
-                .content(note.getContent())
-                .createdAt(note.getCreatedAt())
-                .updatedAt(note.getUpdatedAt())
-                .build());
+    public long getTotalUsersCount() {
+        return userRepository.count();
     }
 
     @Transactional

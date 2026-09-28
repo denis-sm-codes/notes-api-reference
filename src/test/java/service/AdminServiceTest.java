@@ -44,64 +44,64 @@ public class AdminServiceTest {
     @InjectMocks
     private AdminService adminService;
 
-    @Test
-    @DisplayName("Получить всех Пользователей Успех")
-    void getAllAccounts_Success_ReturnsListOfResponseDto(){
-        User user1 = User.builder()
-                .id(1L)
-                .username("Test Username1")
-                .email("test1@email.com")
-                .role(Role.ROLE_USER)
-                .noteCount(5L)
-                .build();
-        User user2 = User.builder()
-                .id(1L)
-                .username("Test Username2")
-                .email("test2@email.com")
-                .role(Role.ROLE_USER)
-                .noteCount(10L)
-                .build();
-
-        List<User> list = List.of(user1, user2);
-
-        when(userRepository.findAll()).thenReturn(list);
-
-        List<UserResponseDto> result = adminService.getAllAccounts();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-
-        UserResponseDto dto1 = result.get(0);
-        assertEquals(user1.getId(), dto1.id());
-        assertEquals(user1.getUsername(), dto1.username());
-        assertEquals(user1.getEmail(), dto1.email());
-        assertEquals(user1.getRole(), dto1.role());
-        assertEquals(user1.getNoteCount(), dto1.noteCount());
-
-        UserResponseDto dto2 = result.get(1);
-        assertEquals(user2.getId(), dto2.id());
-        assertEquals(user2.getUsername(), dto2.username());
-        assertEquals(user2.getEmail(), dto2.email());
-        assertEquals(user2.getRole(), dto2.role());
-        assertEquals(user2.getNoteCount(), dto2.noteCount());
-
-        verify(userRepository, times(1)).findAll();
-        verifyNoMoreInteractions(userRepository);
-    }
-
-    @Test
-    @DisplayName("Получить всех Пользователей Пустой Лист")
-    void getAllAccounts_WhenNoUsers_ReturnsEmptyList() {
-        when(userRepository.findAll()).thenReturn(Collections.emptyList());
-
-        List<UserResponseDto> result = adminService.getAllAccounts();
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        verify(userRepository, times(1)).findAll();
-        verifyNoMoreInteractions(userRepository);
-    }
+//    @Test
+//    @DisplayName("Получить всех Пользователей Успех")
+//    void getAllAccounts_Success_ReturnsListOfResponseDto(){
+//        User user1 = User.builder()
+//                .id(1L)
+//                .username("Test Username1")
+//                .email("test1@email.com")
+//                .role(Role.ROLE_USER)
+//                .noteCount(5L)
+//                .build();
+//        User user2 = User.builder()
+//                .id(1L)
+//                .username("Test Username2")
+//                .email("test2@email.com")
+//                .role(Role.ROLE_USER)
+//                .noteCount(10L)
+//                .build();
+//
+//        List<User> list = List.of(user1, user2);
+//
+//        when(userRepository.findAll()).thenReturn(list);
+//
+//        List<UserResponseDto> result = adminService.getAllAccounts();
+//
+//        assertNotNull(result);
+//        assertEquals(2, result.size());
+//
+//        UserResponseDto dto1 = result.get(0);
+//        assertEquals(user1.getId(), dto1.id());
+//        assertEquals(user1.getUsername(), dto1.username());
+//        assertEquals(user1.getEmail(), dto1.email());
+//        assertEquals(user1.getRole(), dto1.role());
+//        assertEquals(user1.getNoteCount(), dto1.noteCount());
+//
+//        UserResponseDto dto2 = result.get(1);
+//        assertEquals(user2.getId(), dto2.id());
+//        assertEquals(user2.getUsername(), dto2.username());
+//        assertEquals(user2.getEmail(), dto2.email());
+//        assertEquals(user2.getRole(), dto2.role());
+//        assertEquals(user2.getNoteCount(), dto2.noteCount());
+//
+//        verify(userRepository, times(1)).findAll();
+//        verifyNoMoreInteractions(userRepository);
+//    }
+//
+//    @Test
+//    @DisplayName("Получить всех Пользователей Пустой Лист")
+//    void getAllAccounts_WhenNoUsers_ReturnsEmptyList() {
+//        when(userRepository.findAll()).thenReturn(Collections.emptyList());
+//
+//        List<UserResponseDto> result = adminService.getAllAccounts();
+//
+//        assertNotNull(result);
+//        assertTrue(result.isEmpty());
+//
+//        verify(userRepository, times(1)).findAll();
+//        verifyNoMoreInteractions(userRepository);
+//    }
 
     @Test
     @DisplayName("Получить Пользователя по Имени Успех")
@@ -142,54 +142,73 @@ public class AdminServiceTest {
         verifyNoMoreInteractions(userRepository);
     }
 
+//    @Test
+//    @DisplayName("Получить Заметки по Пользователю Успех")
+//    void getAllNotesByUser_Success_ReturnsPageOfNoteResponses(){
+//        String request = "Test Name1";
+//
+//        User user = User.builder()
+//                .id(1L)
+//                .username("Test Name1")
+//                .email("test1@email.com")
+//                .role(Role.ROLE_USER)
+//                .noteCount(2L)
+//                .build();
+//
+//        Note note1 = Note.builder().id(user.getId()).user(user).title("Test Tilte1").content("Test Content1").build();
+//        Note note2 = Note.builder().id(user.getId()).user(user).title("Test Tilte2").content("Test Content2").build();
+//        List<Note> listNotes = List.of(note1, note2);
+//
+//        Pageable pageable = PageRequest.of(0, 10);
+//        Page<Note> pages = new PageImpl<>(listNotes, pageable, listNotes.size());
+//
+//        when(userRepository.findByUsername(request)).thenReturn(Optional.of(user));
+//        when(noteRepository.findAllByUserId(user.getId(),pageable)).thenReturn(pages);
+//
+//        Page<NoteResponse> result = adminService.getAllNotesByUser(request, pageable);
+//
+//        assertNotNull(result);
+//        assertEquals(result.getTotalElements(), user.getNoteCount());
+//        assertEquals(result.getNumber(), 0);
+//        assertEquals(result.getSize(), 10);
+//        assertEquals(listNotes.size(), 2);
+//
+//        verify(userRepository, times(1)).findByUsername(request);
+//        verifyNoMoreInteractions(userRepository);
+//    }
+//
+//    @Test
+//    @DisplayName("Получить Заметки по Пользователю Исключение")
+//    void getAllNotesByUser_WhenUserNotFound_ThrowsUserNotFoundException() {
+//        String username = "Test Name";
+//        Pageable pageable = PageRequest.of(0, 10);
+//
+//        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+//
+//        assertThrows(UserNotFoundException.class, () -> adminService.getAllNotesByUser(username, pageable));
+//
+//        verify(userRepository, times(1)).findByUsername(username);
+//        verifyNoMoreInteractions(userRepository);
+//        verifyNoInteractions(noteRepository);
+//    }
+
+//    public long getTotalUsersCount() {
+//        return userRepository.count();
+//    }
+
     @Test
-    @DisplayName("Получить Заметки по Пользователю Успех")
-    void getAllNotesByUser_Success_ReturnsPageOfNoteResponses(){
-        String request = "Test Name1";
+    @DisplayName("Показать число зарегестрированных пользователей")
+    void getTotalUsersCount_Success_ReturnsTotalUserCount(){
+        Long total = 123L;
 
-        User user = User.builder()
-                .id(1L)
-                .username("Test Name1")
-                .email("test1@email.com")
-                .role(Role.ROLE_USER)
-                .noteCount(2L)
-                .build();
+        when(userRepository.count()).thenReturn(total);
 
-        Note note1 = Note.builder().id(user.getId()).user(user).title("Test Tilte1").content("Test Content1").build();
-        Note note2 = Note.builder().id(user.getId()).user(user).title("Test Tilte2").content("Test Content2").build();
-        List<Note> listNotes = List.of(note1, note2);
+        long result = adminService.getTotalUsersCount();
 
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Note> pages = new PageImpl<>(listNotes, pageable, listNotes.size());
+        assertEquals(total, result);
 
-        when(userRepository.findByUsername(request)).thenReturn(Optional.of(user));
-        when(noteRepository.findAllByUserId(user.getId(),pageable)).thenReturn(pages);
-
-        Page<NoteResponse> result = adminService.getAllNotesByUser(request, pageable);
-
-        assertNotNull(result);
-        assertEquals(result.getTotalElements(), user.getNoteCount());
-        assertEquals(result.getNumber(), 0);
-        assertEquals(result.getSize(), 10);
-        assertEquals(listNotes.size(), 2);
-
-        verify(userRepository, times(1)).findByUsername(request);
+        verify(userRepository, times(1)).count();
         verifyNoMoreInteractions(userRepository);
-    }
-
-    @Test
-    @DisplayName("Получить Заметки по Пользователю Исключение")
-    void getAllNotesByUser_WhenUserNotFound_ThrowsUserNotFoundException() {
-        String username = "Test Name";
-        Pageable pageable = PageRequest.of(0, 10);
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
-
-        assertThrows(UserNotFoundException.class, () -> adminService.getAllNotesByUser(username, pageable));
-
-        verify(userRepository, times(1)).findByUsername(username);
-        verifyNoMoreInteractions(userRepository);
-        verifyNoInteractions(noteRepository);
     }
 
     @Test

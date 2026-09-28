@@ -3,7 +3,7 @@ package dto.response;
 import entity.Role;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Builder
 public record UserResponseDto(
@@ -16,5 +16,7 @@ public record UserResponseDto(
 
         Role role,
 
-        Long noteCount
+        Long noteCount,
+
+        ZonedDateTime createdAt
 ) {}
